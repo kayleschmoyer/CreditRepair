@@ -36,7 +36,7 @@ export default async function DisputeDetail({ params }: { params: { id: string }
   if (dispute) {
     await logAccess(supabase, dispute.user_id, 'disputes', { id: params.id });
     if (dispute.letter_pdf_path) {
-      letterUrl = await getSignedUrl('letters', dispute.user_id, dispute.letter_pdf_path);
+      letterUrl = (await getSignedUrl('letters', dispute.user_id, dispute.letter_pdf_path)) ?? null;
     }
   }
 

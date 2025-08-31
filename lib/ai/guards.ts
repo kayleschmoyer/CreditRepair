@@ -27,14 +27,14 @@ export function maskAccountNumbers(str: string): string {
 }
 
 export function redactPII<T extends Record<string, any>>(data: T): Partial<T> {
-  const clean: Record<string, any> = {};
-  for (const key in data) {
-    if (!PII_FIELDS.includes(key)) {
-      let value = (data as any)[key];
+  const clean: Partial<T> = {};
+  for (const key of Object.keys(data) as Array<keyof T>) {
+    if (!PII_FIELDS.includes(key as string)) {
+      let value: any = data[key];
       if (typeof value === 'string') {
         value = maskAccountNumbers(value);
       }
-      clean[key] = value;
+      (clean as any)[key] = value;
     }
   }
   return clean;
