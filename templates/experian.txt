@@ -1,0 +1,19 @@
+{{CONSUMER_NAME}}
+{{ADDRESS}}
+{{CITY_STATE_ZIP}}
+
+Experian
+P.O. Box 9701
+Allen, TX 75013
+
+Re: Request for Investigation
+
+Dear Experian,
+
+I am disputing the items listed for period {{REPORT_PERIOD}}:
+{{ITEMS_TABLE}}
+
+Please investigate and correct any errors.
+
+Sincerely,
+{{CONSUMER_NAME}}

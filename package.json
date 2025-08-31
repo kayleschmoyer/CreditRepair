@@ -1,0 +1,36 @@
+{
+  "name": "creditcraft",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "db:apply": "psql $SUPABASE_DB_URL -f sql/migration.sql",
+    "db:seed": "ts-node sql/seed.ts",
+    "test": "vitest",
+    "test:e2e": "playwright test"
+  },
+  "dependencies": {
+    "next": "14.0.0",
+    "react": "18.2.0",
+    "react-dom": "18.2.0",
+    "@supabase/supabase-js": "2.39.8",
+    "@supabase/auth-helpers-nextjs": "0.10.0",
+    "@supabase/auth-ui-react": "0.2.7",
+    "zod": "3.22.4",
+    "react-hook-form": "7.45.1",
+    "pdf-lib": "1.17.1",
+    "resend": "6.0.2",
+    "nodemailer": "6.9.5"
+  },
+  "devDependencies": {
+    "typescript": "5.2.2",
+    "ts-node": "10.9.1",
+    "@types/node": "20.8.10",
+    "@types/react": "18.2.21",
+    "@types/react-dom": "18.2.7",
+    "vitest": "0.34.6",
+    "@playwright/test": "1.38.0"
+  }
+}
