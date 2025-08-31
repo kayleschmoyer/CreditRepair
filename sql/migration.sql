@@ -116,6 +116,7 @@ alter table disputes enable row level security;
 alter table notifications enable row level security;
 alter table audit_access enable row level security;
 alter table consents enable row level security;
+alter table last_cron_run enable row level security;
 
 create policy "Profiles are viewable by owner" on profiles for select using ( id = auth.uid() );
 create policy "Profiles are insertable by owner" on profiles for insert with check ( id = auth.uid() );
@@ -141,6 +142,7 @@ create policy "Notifications by owner" on notifications for all using ( user_id 
 create policy "Audit read by owner" on audit_access for select using ( user_id = auth.uid() );
 create policy "Audit insert by owner" on audit_access for insert with check ( user_id = auth.uid() );
 create policy "Consents by owner" on consents for all using ( user_id = auth.uid() ) with check ( user_id = auth.uid() );
+create policy "Cron run by service role" on last_cron_run for all using ( auth.role() = 'service_role' ) with check ( auth.role() = 'service_role' );
 
 -- Trigger to insert profile on signup
 create or replace function public.handle_new_user()

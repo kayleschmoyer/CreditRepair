@@ -57,7 +57,7 @@ export default async function DisputeDetail({ params }: { params: { id: string }
           if (profile) {
             await logAccess(supabase, profile.id, 'profiles', { reason: 'generate_letter' });
           }
-          const { data: url } = supabase.storage.from('letters').getPublicUrl(data.path);
+          const signedUrl = await getSignedUrl('letters', disputeRecord.user_id, data.path, 300);
           const to = bureauAddresses[disputeRecord.bureau as keyof typeof bureauAddresses];
           const from: Address = {
             name: profile?.display_name || '',
@@ -67,7 +67,10 @@ export default async function DisputeDetail({ params }: { params: { id: string }
             state: profile?.state || '',
             postal_code: profile?.postal_code || '',
           };
-          await provider.createLetter(to, from, url.publicUrl);
+          if (!signedUrl) {
+            throw new Error('Unable to generate letter URL');
+          }
+          await provider.createLetter(to, from, signedUrl);
           const due = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
           await supabase
             .from('disputes')

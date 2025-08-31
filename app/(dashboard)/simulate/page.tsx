@@ -32,9 +32,7 @@ export default function SimulatePage() {
   async function runCron(): Promise<{ error?: AppError }> {
     'use server';
     const supabase = createServerClient();
-    console.log('Invoking cron-due-reminders');
     const { data, error } = await supabase.functions.invoke('cron-due-reminders');
-    console.log('cron-due-reminders result', { data, error });
     if (error || !data?.ok) {
       return { error: { code: 'SERVER_ERROR', message: error?.message || data?.error?.message || 'Cron failed' } };
     }
