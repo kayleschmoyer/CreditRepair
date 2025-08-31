@@ -84,11 +84,13 @@ export interface Database {
         Row: {
           id: string;
           user_id: string;
+          dispute_id: string | null;
           type: string | null;
           message: string | null;
           link: string | null;
           read: boolean | null;
           created_at: string;
+          notify_date: string;
         };
       };
       audit_access: {
@@ -100,6 +102,12 @@ export interface Database {
           action: string | null;
           details: Json | null;
           created_at: string;
+        };
+      };
+      last_cron_run: {
+        Row: {
+          name: string;
+          ran_at: string | null;
         };
       };
     };
