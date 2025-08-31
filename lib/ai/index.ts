@@ -1,3 +1,5 @@
+import { OpenAIProvider } from './openai';
+
 export interface DisputeSuggestion {
   tradelineId: string;
   kind: string;
@@ -38,4 +40,7 @@ class MockAI implements AIProvider {
   }
 }
 
-export const aiProvider: AIProvider = new MockAI();
+export { OpenAIProvider } from './openai';
+
+export const aiProvider: AIProvider =
+  process.env.OPENAI_API_KEY ? new OpenAIProvider() : new MockAI();
