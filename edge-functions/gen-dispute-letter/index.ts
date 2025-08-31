@@ -62,37 +62,103 @@ serve(
         };
       }
       userId = dispute.data.user_id;
-      const user = await supabase
+      const profile = await supabase
         .from("profiles")
         .select("*")
         .eq("id", dispute.data.user_id)
         .single();
-      const template = await (
-        await fetch(
-          new URL(
-            `../../templates/${dispute.data.bureau}.txt`,
-            import.meta.url,
-          ),
-        )
-      ).text();
-      let content = template
-        .replace("{{CONSUMER_NAME}}", user.data!.display_name || "")
-        .replace(
-          "{{ADDRESS}}",
-          `${user.data!.address_line1 || ""} ${user.data!.address_line2 || ""}`,
-        )
-        .replace(
-          "{{CITY_STATE_ZIP}}",
-          `${user.data!.city || ""}, ${user.data!.state || ""} ${user.data!.postal_code || ""}`,
-        )
-        .replace("{{REPORT_PERIOD}}", "");
-      // simple items join
-      content = content.replace(
-        "{{ITEMS_TABLE}}",
-        JSON.stringify(dispute.data.items),
+      if (!profile.data) {
+        const error: AppError = {
+          code: "DISPUTE_NOT_FOUND",
+          message: "Profile not found",
+        };
+        return {
+          response: new Response(JSON.stringify({ ok: false, error }), {
+            status: 404,
+            headers: { "Content-Type": "application/json" },
+          }),
+        };
+      }
+
+      await supabase.from("audit_access").insert({
+        id: crypto.randomUUID(),
+        user_id: profile.data.id,
+        actor: profile.data.id,
+        resource: "profiles",
+        action: "read",
+        details: { reason: "generate_letter" },
+      });
+
+      const bureauAddresses: Record<string, {
+        name: string;
+        address_line1: string;
+        city: string;
+        state: string;
+        postal_code: string;
+      }> = {
+        equifax: {
+          name: "Equifax Information Services LLC",
+          address_line1: "P.O. Box 740256",
+          city: "Atlanta",
+          state: "GA",
+          postal_code: "30374",
+        },
+        experian: {
+          name: "Experian",
+          address_line1: "P.O. Box 9701",
+          city: "Allen",
+          state: "TX",
+          postal_code: "75013",
+        },
+        transunion: {
+          name: "TransUnion LLC",
+          address_line1: "P.O. Box 2000",
+          city: "Chester",
+          state: "PA",
+          postal_code: "19016",
+        },
+      };
+
+      const bureau =
+        bureauAddresses[dispute.data.bureau as keyof typeof bureauAddresses];
+
+      const pdfLib = await import("https://esm.sh/pdf-lib@1.17.1");
+      const pdfDoc = await pdfLib.PDFDocument.create();
+      const page = pdfDoc.addPage([612, 792]);
+      const font = await pdfDoc.embedFont(pdfLib.StandardFonts.Helvetica);
+      let y = 750;
+
+      const draw = (text: string, x: number, dy = 15) => {
+        page.drawText(text, { x, y, size: 12, font });
+        y -= dy;
+      };
+
+      draw(bureau.name, 50);
+      draw(bureau.address_line1, 50);
+      draw(`${bureau.city}, ${bureau.state} ${bureau.postal_code}`, 50, 40);
+      draw(profile.data.display_name || "", 50);
+      draw(profile.data.address_line1 || "", 50);
+      if (profile.data.address_line2) {
+        draw(profile.data.address_line2, 50);
+      }
+      draw(
+        `${profile.data.city || ""}, ${profile.data.state || ""} ${
+          profile.data.postal_code || ""
+        }`,
+        50,
+        30,
       );
-      const pdfBytes = new TextEncoder().encode(content);
-      const path = `users/${user.data!.id}/disputes/${disputeId}.pdf`;
+      draw("To whom it may concern,", 50, 20);
+
+      for (const item of (dispute.data.items as Array<any>)) {
+        draw(`Account ${item.tradelineId}: ${item.reason}`, 50);
+      }
+
+      draw("Sincerely,", 50, 20);
+      draw(profile.data.display_name || "", 50);
+
+      const pdfBytes = await pdfDoc.save();
+      const path = `users/${profile.data.id}/disputes/${disputeId}.pdf`;
       await supabase.storage
         .from("letters")
         .upload(path, pdfBytes, { contentType: "application/pdf" });
