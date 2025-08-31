@@ -1,5 +1,7 @@
 import { createServerClient } from '../../../../lib/supabase/server';
 import { createMailingProvider, Address } from '../../../../lib/mailing';
+import { getSignedUrl } from '../../../../lib/supabase/storage';
+import { logAccess } from '../../../../lib/supabase/access-log';
 
 const bureauAddresses: Record<string, Address> = {
   equifax: {
@@ -28,6 +30,13 @@ const bureauAddresses: Record<string, Address> = {
 export default async function DisputeDetail({ params }: { params: { id: string } }) {
   const supabase = createServerClient();
   const { data: dispute } = await supabase.from('disputes').select('*').eq('id', params.id).single();
+  let letterUrl: string | null = null;
+  if (dispute) {
+    await logAccess(supabase, dispute.user_id, 'disputes', { id: params.id });
+    if (dispute.letter_pdf_path) {
+      letterUrl = await getSignedUrl('letters', dispute.user_id, dispute.letter_pdf_path);
+    }
+  }
 
   async function genLetter() {
     'use server';
@@ -37,6 +46,9 @@ export default async function DisputeDetail({ params }: { params: { id: string }
       const { data: disputeRecord } = await supabase.from('disputes').select('*').eq('id', params.id).single();
       if (disputeRecord) {
         const { data: profile } = await supabase.from('profiles').select('*').eq('id', disputeRecord.user_id).single();
+        if (profile) {
+          await logAccess(supabase, profile.id, 'profiles', { reason: 'generate_letter' });
+        }
         const { data: url } = supabase.storage.from('letters').getPublicUrl(data.path);
         const to = bureauAddresses[disputeRecord.bureau as keyof typeof bureauAddresses];
         const from: Address = {
@@ -69,7 +81,7 @@ export default async function DisputeDetail({ params }: { params: { id: string }
       <pre>{JSON.stringify(dispute, null, 2)}</pre>
       <form action={genLetter}><button type="submit">Generate Letter</button></form>
       <form action={markMailed}><button type="submit">Mark as mailed</button></form>
-      {dispute?.letter_pdf_path && <a href={dispute.letter_pdf_path}>Download Letter</a>}
+      {letterUrl && <a href={letterUrl}>Download Letter</a>}
     </div>
   );
 }

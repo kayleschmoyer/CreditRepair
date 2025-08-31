@@ -108,11 +108,24 @@ create policy "Profiles are insertable by owner" on profiles for insert with che
 create policy "Profiles are updatable by owner" on profiles for update using ( id = auth.uid() );
 
 create policy "Reports by owner" on credit_reports for all using ( user_id = auth.uid() ) with check ( user_id = auth.uid() );
-create policy "Tradelines by owner" on tradelines for all using ( exists (select 1 from credit_reports cr where cr.id = report_id and cr.user_id = auth.uid()) );
+create policy "Tradelines by owner" on tradelines for all
+  using (
+    exists (
+      select 1 from credit_reports cr
+      where cr.id = report_id and cr.user_id = auth.uid()
+    )
+  )
+  with check (
+    exists (
+      select 1 from credit_reports cr
+      where cr.id = report_id and cr.user_id = auth.uid()
+    )
+  );
 create policy "Candidates by owner" on dispute_candidates for all using ( user_id = auth.uid() ) with check ( user_id = auth.uid() );
 create policy "Disputes by owner" on disputes for all using ( user_id = auth.uid() ) with check ( user_id = auth.uid() );
 create policy "Notifications by owner" on notifications for all using ( user_id = auth.uid() ) with check ( user_id = auth.uid() );
 create policy "Audit read by owner" on audit_access for select using ( user_id = auth.uid() );
+create policy "Audit insert by owner" on audit_access for insert with check ( user_id = auth.uid() );
 
 -- Trigger to insert profile on signup
 create or replace function public.handle_new_user()
