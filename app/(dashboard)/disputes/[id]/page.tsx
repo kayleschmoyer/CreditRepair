@@ -109,8 +109,12 @@ export default async function DisputeDetail({ params }: { params: { id: string }
     <div>
       <h1>Dispute {params.id}</h1>
       <pre>{JSON.stringify(dispute, null, 2)}</pre>
-      <FormWithToast action={genLetter}><button type="submit">Generate Letter</button></FormWithToast>
-      <FormWithToast action={markMailed}><button type="submit">Mark as mailed</button></FormWithToast>
+      <FormWithToast action={genLetter}>
+        <button type="submit">Generate Letter</button>
+      </FormWithToast>
+      <FormWithToast action={markMailed} confirmMessage="Mark as mailed?">
+        <button type="submit">Mark as mailed</button>
+      </FormWithToast>
       {letterUrl && <a href={letterUrl}>Download Letter</a>}
     </div>
   );

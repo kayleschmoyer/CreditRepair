@@ -1,7 +1,7 @@
 .root {
-  padding: 1rem;
+  padding: var(--space-4);
   border: 2px dashed var(--color-border);
-  border-radius: 0.75rem;
+  border-radius: var(--space-3);
   background: var(--color-surface);
   box-shadow: var(--shadow-sm);
   transition: border-color 0.2s, box-shadow 0.2s;

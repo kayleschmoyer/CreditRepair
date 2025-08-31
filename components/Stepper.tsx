@@ -15,6 +15,10 @@ export default function Stepper({ steps, active, onStepChange }: Props) {
       onStepChange(Math.min(steps.length - 1, index + 1));
     } else if (e.key === 'ArrowLeft') {
       onStepChange(Math.max(0, index - 1));
+    } else if (e.key === 'Home') {
+      onStepChange(0);
+    } else if (e.key === 'End') {
+      onStepChange(steps.length - 1);
     }
   }
 

@@ -1,7 +1,7 @@
 .root {
-  padding: 0.5rem;
+  padding: var(--space-2);
   border: 1px solid var(--color-border);
-  border-radius: 0.75rem;
+  border-radius: var(--space-3);
   font-size: 14px;
   background: var(--color-surface);
   color: var(--color-text);
@@ -10,7 +10,6 @@
 }
 
 .root:focus {
-  outline: none;
   border-color: var(--color-primary);
   box-shadow: 0 0 0 3px rgba(46, 125, 50, 0.3);
 }
