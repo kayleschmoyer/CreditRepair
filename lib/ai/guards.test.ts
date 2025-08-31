@@ -1,11 +1,29 @@
 import { describe, expect, it, afterEach } from 'vitest';
-import { redactPII, requireApiKey } from './guards';
+import { redactPII, requireApiKey, maskAccountNumbers } from './guards';
 
 describe('redactPII', () => {
   it('removes PII fields', () => {
     const input = { name: 'Jane', email: 'jane@example.com', score: 720 };
     const result = redactPII(input);
     expect(result).toEqual({ score: 720 });
+  });
+
+  it('strips SSN and masks account numbers', () => {
+    const input = {
+      ssn: '123-45-6789',
+      accountNumber: '123456789',
+      note: 'acct 987654321',
+    };
+    const result = redactPII(input);
+    expect(result.ssn).toBeUndefined();
+    expect(result.accountNumber).toBe('*****6789');
+    expect(result.note).toBe('acct *****4321');
+    expect(JSON.stringify(result)).not.toMatch(/\d{5,}/);
+  });
+
+  it('masks embedded numbers in strings', () => {
+    const masked = maskAccountNumbers('SSN 123-45-6789 and acct 123456789');
+    expect(masked).toBe('SSN ***-**-6789 and acct *****6789');
   });
 });
 
