@@ -43,6 +43,9 @@ export default async function DisputeDetail({ params }: { params: { id: string }
   async function genLetter(): Promise<{ error?: AppError }> {
     'use server';
     try {
+      if (dispute?.letter_pdf_path) {
+        return {};
+      }
       const { data, error } = await supabase.functions.invoke('gen-dispute-letter', {
         body: { disputeId: params.id },
       });
@@ -92,6 +95,14 @@ export default async function DisputeDetail({ params }: { params: { id: string }
   async function markMailed(): Promise<{ error?: AppError }> {
     'use server';
     try {
+      const { data: existing } = await supabase
+        .from('disputes')
+        .select('status')
+        .eq('id', params.id)
+        .single();
+      if (existing?.status === 'sent') {
+        return {};
+      }
       const due = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
       await supabase
         .from('disputes')

@@ -17,6 +17,14 @@ export default async function ReportDetail({ params }: { params: { id: string } 
   async function findCandidates(): Promise<{ error?: AppError }> {
     'use server';
     try {
+      const { data: existing } = await supabase
+        .from('dispute_candidates')
+        .select('id')
+        .eq('report_id', params.id)
+        .limit(1);
+      if (existing && existing.length > 0) {
+        return {};
+      }
       const suggestions = await aiProvider.suggestDisputes(params.id);
       const rows = suggestions.map((s) => ({
         ...s,

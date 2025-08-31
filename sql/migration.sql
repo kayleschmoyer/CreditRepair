@@ -106,6 +106,10 @@ create index if not exists notifications_user_idx on notifications(user_id);
 create unique index if not exists notifications_dispute_type_date_key on notifications(dispute_id, type, notify_date) where dispute_id is not null and type is not null;
 create index if not exists dispute_candidates_report_idx on dispute_candidates(report_id);
 create index if not exists tradelines_report_idx on tradelines(report_id);
+create index if not exists credit_reports_created_at_idx on credit_reports(created_at);
+create index if not exists disputes_created_at_idx on disputes(created_at);
+create index if not exists disputes_status_idx on disputes(status);
+create index if not exists notifications_read_idx on notifications(read);
 
 -- RLS
 alter table profiles enable row level security;
