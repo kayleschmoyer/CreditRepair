@@ -1,20 +1,40 @@
 import { aiProvider } from '../../../lib/ai';
+import { z } from 'zod';
+import FormWithToast from '../../../components/FormWithToast';
+import type { AppError } from '../../../lib/utils/errors';
 
 export default function SimulatePage() {
-  async function simulate(formData: FormData) {
+  async function simulate(formData: FormData): Promise<{ error?: AppError }> {
     'use server';
-    const score = Number(formData.get('score'));
-    const delta = Number(formData.get('delta'));
-    return await aiProvider.simulate(score, delta);
+    const schema = z.object({
+      score: z.preprocess((v) => Number(v), z.number().int().min(300).max(850)),
+      delta: z.preprocess((v) => Number(v), z.number().min(-100).max(100)),
+    });
+    const values = Object.fromEntries(formData.entries());
+    const parsed = schema.safeParse(values);
+    if (!parsed.success) {
+      return { error: { code: 'INVALID_INPUT', message: parsed.error.message } };
+    }
+    try {
+      await aiProvider.simulate(parsed.data.score, parsed.data.delta);
+      return {};
+    } catch (e) {
+      return {
+        error: {
+          code: 'SERVER_ERROR',
+          message: e instanceof Error ? e.message : 'Simulation failed',
+        },
+      };
+    }
   }
   return (
     <div>
       <h1>Simulator</h1>
-      <form action={simulate}>
+      <FormWithToast action={simulate}>
         <label>Current Score <input name="score" defaultValue="650" /></label><br />
         <label>Utilization Change (%) <input name="delta" defaultValue="-10" /></label><br />
         <button type="submit">Simulate</button>
-      </form>
+      </FormWithToast>
     </div>
   );
 }
