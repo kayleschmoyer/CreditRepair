@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { logAccess } from '../../../lib/supabase/access-log';
 import FormWithToast from '../../../components/FormWithToast';
 import type { AppError } from '../../../lib/utils/errors';
+import { createMailer } from '../../../lib/mail';
 
 export default async function SettingsPage() {
   const supabase = createServerClient();
@@ -29,6 +30,16 @@ export default async function SettingsPage() {
 
   async function deleteMyData(): Promise<{ error?: AppError }> {
     'use server';
+    const run = async (fn: () => Promise<unknown>) => {
+      for (let i = 0; i < 3; i++) {
+        try {
+          await fn();
+          return;
+        } catch (e) {
+          if (i === 2) throw e;
+        }
+      }
+    };
     try {
       const {
         data: { user },
@@ -36,14 +47,28 @@ export default async function SettingsPage() {
       if (!user) {
         return { error: { code: 'UNAUTHORIZED', message: 'Not signed in' } };
       }
-      await supabase.from('audit_access').insert({ id: crypto.randomUUID(), user_id: user.id, actor: user.id, resource: 'all', action: 'delete' });
-      await supabase.storage.from('reports').remove([`users/${user.id}`]);
-      await supabase.storage.from('letters').remove([`users/${user.id}`]);
-      await supabase.from('notifications').delete().eq('user_id', user.id);
-      await supabase.from('dispute_candidates').delete().eq('user_id', user.id);
-      await supabase.from('disputes').delete().eq('user_id', user.id);
-      await supabase.from('credit_reports').delete().eq('user_id', user.id);
-      await supabase.from('profiles').delete().eq('id', user.id);
+      const mailer = createMailer();
+      await run(() =>
+        supabase
+          .from('audit_access')
+          .insert({ id: crypto.randomUUID(), user_id: user.id, actor: user.id, resource: 'all', action: 'delete' })
+      );
+      await run(() => supabase.storage.from('reports').remove([`users/${user.id}`]));
+      await run(() => supabase.storage.from('letters').remove([`users/${user.id}`]));
+      await run(() => supabase.from('notifications').delete().eq('user_id', user.id));
+      await run(() => supabase.from('dispute_candidates').delete().eq('user_id', user.id));
+      await run(() => supabase.from('disputes').delete().eq('user_id', user.id));
+      await run(() => supabase.from('credit_reports').delete().eq('user_id', user.id));
+      await run(() => supabase.from('audit_access').delete().eq('user_id', user.id));
+      await run(() => supabase.from('consents').delete().eq('user_id', user.id));
+      await run(() => supabase.from('profiles').delete().eq('id', user.id));
+      if (user.email) {
+        await mailer.send({
+          to: user.email,
+          subject: 'Your data has been deleted',
+          html: 'All of your data has been removed from CreditCraft.',
+        });
+      }
       return {};
     } catch (e) {
       return {
@@ -66,6 +91,7 @@ export default async function SettingsPage() {
         <label>Postal <input name="postal_code" defaultValue={profile?.postal_code || ''} /></label><br />
         <button type="submit">Save</button>
       </FormWithToast>
+      <p><a href="/api/export-my-data">Export My Data</a></p>
       <FormWithToast action={deleteMyData}>
         <button type="submit" style={{ marginTop: 20, color: 'red' }}>Delete My Data</button>
       </FormWithToast>
