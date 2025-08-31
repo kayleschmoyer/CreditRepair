@@ -12,12 +12,12 @@ export interface ScoreSimulation {
   notes: string;
 }
 
-export interface AIProvider {
+export interface IAiProvider {
   suggestDisputes(reportId: string): Promise<DisputeSuggestion[]>;
   simulate(score: number, utilizationDelta: number): Promise<ScoreSimulation>;
 }
 
-class MockAI implements AIProvider {
+class MockAiProvider implements IAiProvider {
   async suggestDisputes(reportId: string): Promise<DisputeSuggestion[]> {
     return [
       {
@@ -41,6 +41,7 @@ class MockAI implements AIProvider {
 }
 
 export { OpenAIProvider } from './openai';
+export { MockAiProvider };
 
-export const aiProvider: AIProvider =
-  process.env.OPENAI_API_KEY ? new OpenAIProvider() : new MockAI();
+export const aiProvider: IAiProvider =
+  process.env.OPENAI_API_KEY ? new OpenAIProvider() : new MockAiProvider();

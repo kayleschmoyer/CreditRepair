@@ -1,12 +1,12 @@
-import type { AIProvider, DisputeSuggestion, ScoreSimulation } from './index';
-import { redactPII, requireApiKey } from './guards';
+import type { IAiProvider, DisputeSuggestion, ScoreSimulation } from './index';
+import { redactPII, requireApiKey, maskAccountNumbers } from './guards';
 
 interface ChatMessage {
   role: 'system' | 'user' | 'assistant';
   content: string;
 }
 
-export class OpenAIProvider implements AIProvider {
+export class OpenAIProvider implements IAiProvider {
   private apiKey: string;
   constructor(apiKey = requireApiKey()) {
     this.apiKey = apiKey;
@@ -27,7 +27,9 @@ export class OpenAIProvider implements AIProvider {
 
   async suggestDisputes(reportId: string): Promise<DisputeSuggestion[]> {
     const safe = redactPII({ reportId });
-    const prompt = `Given credit report identifier ${safe.reportId}, provide a JSON array of dispute suggestions with fields tradelineId, kind, rationale, and confidence.`;
+    const prompt = maskAccountNumbers(
+      `Given credit report identifier ${safe.reportId}, provide a JSON array of dispute suggestions with fields tradelineId, kind, rationale, and confidence.`,
+    );
     const content = await this.chat([{ role: 'user', content: prompt }]);
     try {
       const parsed = JSON.parse(content);
@@ -39,7 +41,9 @@ export class OpenAIProvider implements AIProvider {
 
   async simulate(score: number, utilizationDelta: number): Promise<ScoreSimulation> {
     const safe = redactPII({ score, utilizationDelta });
-    const prompt = `Current score: ${safe.score}. Utilization delta: ${safe.utilizationDelta}. Respond with JSON {"newScore":number,"notes":string}.`;
+    const prompt = maskAccountNumbers(
+      `Current score: ${safe.score}. Utilization delta: ${safe.utilizationDelta}. Respond with JSON {"newScore":number,"notes":string}.`,
+    );
     const content = await this.chat([{ role: 'user', content: prompt }]);
     try {
       const parsed = JSON.parse(content);
