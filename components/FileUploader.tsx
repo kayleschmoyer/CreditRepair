@@ -27,7 +27,7 @@ export default function FileUploader({ onUploaded }: Props) {
   }
 
   return (
-    <div className={styles.uploader}>
+    <div className={styles.root}>
       <input type="file" accept="application/pdf" onChange={upload} disabled={uploading} />
     </div>
   );

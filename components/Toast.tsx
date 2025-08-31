@@ -11,5 +11,5 @@ export default function Toast({ message, duration = 3000 }: Props) {
     return () => clearTimeout(id);
   }, [duration]);
   if (!visible) return null;
-  return <div className={styles.toast}>{message}</div>;
+  return <div className={styles.root}>{message}</div>;
 }
