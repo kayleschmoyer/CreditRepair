@@ -93,6 +93,11 @@ create table if not exists audit_access (
   created_at timestamptz default now()
 );
 
+create table if not exists consents (
+  user_id uuid primary key references auth.users on delete cascade,
+  consented_at timestamptz default now()
+);
+
 -- Indexes
 create index if not exists credit_reports_user_idx on credit_reports(user_id);
 create index if not exists dispute_candidates_user_idx on dispute_candidates(user_id);
@@ -110,6 +115,7 @@ alter table dispute_candidates enable row level security;
 alter table disputes enable row level security;
 alter table notifications enable row level security;
 alter table audit_access enable row level security;
+alter table consents enable row level security;
 
 create policy "Profiles are viewable by owner" on profiles for select using ( id = auth.uid() );
 create policy "Profiles are insertable by owner" on profiles for insert with check ( id = auth.uid() );
@@ -134,6 +140,7 @@ create policy "Disputes by owner" on disputes for all using ( user_id = auth.uid
 create policy "Notifications by owner" on notifications for all using ( user_id = auth.uid() ) with check ( user_id = auth.uid() );
 create policy "Audit read by owner" on audit_access for select using ( user_id = auth.uid() );
 create policy "Audit insert by owner" on audit_access for insert with check ( user_id = auth.uid() );
+create policy "Consents by owner" on consents for all using ( user_id = auth.uid() ) with check ( user_id = auth.uid() );
 
 -- Trigger to insert profile on signup
 create or replace function public.handle_new_user()
