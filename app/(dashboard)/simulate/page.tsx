@@ -2,6 +2,7 @@ import { aiProvider } from '../../../lib/ai';
 import { z } from 'zod';
 import FormWithToast from '../../../components/FormWithToast';
 import type { AppError } from '../../../lib/utils/errors';
+import { createServerClient } from '../../../lib/supabase/server';
 
 export default function SimulatePage() {
   async function simulate(formData: FormData): Promise<{ error?: AppError }> {
@@ -27,6 +28,18 @@ export default function SimulatePage() {
       };
     }
   }
+
+  async function runCron(): Promise<{ error?: AppError }> {
+    'use server';
+    const supabase = createServerClient();
+    console.log('Invoking cron-due-reminders');
+    const { data, error } = await supabase.functions.invoke('cron-due-reminders');
+    console.log('cron-due-reminders result', { data, error });
+    if (error || !data?.ok) {
+      return { error: { code: 'SERVER_ERROR', message: error?.message || data?.error?.message || 'Cron failed' } };
+    }
+    return {};
+  }
   return (
     <div>
       <h1>Simulator</h1>
@@ -34,6 +47,10 @@ export default function SimulatePage() {
         <label>Current Score <input name="score" defaultValue="650" /></label><br />
         <label>Utilization Change (%) <input name="delta" defaultValue="-10" /></label><br />
         <button type="submit">Simulate</button>
+      </FormWithToast>
+      <hr />
+      <FormWithToast action={runCron}>
+        <button type="submit">Run cron now</button>
       </FormWithToast>
     </div>
   );

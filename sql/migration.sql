@@ -69,11 +69,18 @@ create table if not exists disputes (
 create table if not exists notifications (
   id uuid primary key,
   user_id uuid not null,
+  dispute_id uuid,
   type text,
   message text,
   link text,
   read boolean default false,
-  created_at timestamptz default now()
+  created_at timestamptz default now(),
+  notify_date date default current_date
+);
+
+create table if not exists last_cron_run (
+  name text primary key,
+  ran_at timestamptz
 );
 
 create table if not exists audit_access (
@@ -91,6 +98,7 @@ create index if not exists credit_reports_user_idx on credit_reports(user_id);
 create index if not exists dispute_candidates_user_idx on dispute_candidates(user_id);
 create index if not exists disputes_user_idx on disputes(user_id);
 create index if not exists notifications_user_idx on notifications(user_id);
+create unique index if not exists notifications_dispute_type_date_key on notifications(dispute_id, type, notify_date) where dispute_id is not null and type is not null;
 create index if not exists dispute_candidates_report_idx on dispute_candidates(report_id);
 create index if not exists tradelines_report_idx on tradelines(report_id);
 
