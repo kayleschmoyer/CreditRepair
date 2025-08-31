@@ -14,6 +14,18 @@ jobs:
           node-version: 18
           cache: 'npm'
       - run: npm ci
+      - uses: supabase/setup-cli@v1
+      - run: supabase start
+      - run: |
+          source supabase/.env
+          echo "NEXT_PUBLIC_SUPABASE_URL=$API_URL" >> $GITHUB_ENV
+          echo "NEXT_PUBLIC_SUPABASE_ANON_KEY=$ANON_KEY" >> $GITHUB_ENV
+          echo "SUPABASE_SERVICE_ROLE_KEY=$SERVICE_ROLE_KEY" >> $GITHUB_ENV
+          echo "SUPABASE_DB_URL=$DB_URL" >> $GITHUB_ENV
+          npm run db:apply
+          npm run db:seed
       - run: npm run typecheck
       - run: npm run lint
       - run: npm test
+      - run: npx playwright install --with-deps
+      - run: npm run test:e2e
