@@ -62,6 +62,15 @@ serve(
         };
       }
       userId = dispute.data.user_id;
+      if (dispute.data.letter_pdf_path) {
+        return {
+          response: new Response(
+            JSON.stringify({ ok: true, path: dispute.data.letter_pdf_path }),
+            { headers: { "Content-Type": "application/json" } },
+          ),
+          userId,
+        };
+      }
       const profile = await supabase
         .from("profiles")
         .select("*")

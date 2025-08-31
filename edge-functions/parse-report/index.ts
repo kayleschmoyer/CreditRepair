@@ -47,6 +47,21 @@ serve(
     // mock parser
     const { reportId, userId } = parsed.data;
     try {
+      const { data: existing } = await supabase
+        .from("credit_reports")
+        .select("status")
+        .eq("id", reportId)
+        .eq("user_id", userId)
+        .single();
+      if (existing?.status === "parsed") {
+        return {
+          response: new Response(
+            JSON.stringify({ ok: true, parsed: true }),
+            { headers: { "Content-Type": "application/json" } },
+          ),
+          userId,
+        };
+      }
       const tradelines = [
         {
           id: crypto.randomUUID(),

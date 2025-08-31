@@ -63,6 +63,19 @@ serve(
         };
       }
       userId = report.data.user_id;
+      const { data: existing } = await supabase
+        .from("dispute_candidates")
+        .select("*")
+        .eq("report_id", reportId);
+      if (existing && existing.length > 0) {
+        return {
+          response: new Response(
+            JSON.stringify({ ok: true, suggestions: existing }),
+            { headers: { "Content-Type": "application/json" } },
+          ),
+          userId,
+        };
+      }
       const suggestions = [
         {
           id: crypto.randomUUID(),
