@@ -2,10 +2,14 @@ import { createServerClient } from '../../../../lib/supabase/server';
 import { aiProvider } from '../../../../lib/ai';
 import Table from '../../../../components/Table';
 import { formatMoney } from '../../../../lib/utils';
+import { logAccess } from '../../../../lib/supabase/access-log';
 
 export default async function ReportDetail({ params }: { params: { id: string } }) {
   const supabase = createServerClient();
   const { data: report } = await supabase.from('credit_reports').select('*').eq('id', params.id).single();
+  if (report) {
+    await logAccess(supabase, report.user_id, 'credit_reports', { id: params.id });
+  }
   const { data: tradelines } = await supabase.from('tradelines').select('*').eq('report_id', params.id);
 
   async function findCandidates() {

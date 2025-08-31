@@ -1,10 +1,14 @@
 import { createServerClient } from '../../../lib/supabase/server';
 import { profileSchema } from '../../../lib/validation';
 import { revalidatePath } from 'next/cache';
+import { logAccess } from '../../../lib/supabase/access-log';
 
 export default async function SettingsPage() {
   const supabase = createServerClient();
   const { data: profile } = await supabase.from('profiles').select('*').single();
+  if (profile) {
+    await logAccess(supabase, profile.id, 'profiles');
+  }
 
   async function updateProfile(formData: FormData) {
     'use server';
