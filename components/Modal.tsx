@@ -12,7 +12,7 @@ export default function Modal({ open, onClose, children }: Props) {
   if (!open) return null;
   return (
     <div className={styles.backdrop} onClick={onClose}>
-      <div className={styles.modal} onClick={e => e.stopPropagation()}>
+      <div className={styles.card} onClick={e => e.stopPropagation()}>
         {children}
       </div>
     </div>

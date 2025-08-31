@@ -1,13 +1,26 @@
-.table {
+.root {
   width: 100%;
-  border-collapse: collapse;
+  border-collapse: separate;
+  border-spacing: 0;
+  background: var(--color-surface);
+  border-radius: 0.75rem;
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
 }
-.table th,
-.table td {
-  padding: 8px;
-  border: 1px solid #ddd;
+
+.root th,
+.root td {
+  padding: 0.5rem;
+  border-bottom: 1px solid var(--color-border);
 }
-.table th {
-  background: #eee;
+
+.root th {
+  background: #f3f4f6;
   text-align: left;
+}
+
+@media (prefers-color-scheme: dark) {
+  .root th {
+    background: #374151;
+  }
 }

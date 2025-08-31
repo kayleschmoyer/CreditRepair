@@ -1,9 +1,10 @@
-.toast {
+.root {
   position: fixed;
-  bottom: 16px;
-  right: 16px;
-  background: #333;
-  color: #fff;
-  padding: 8px 12px;
-  border-radius: 4px;
+  bottom: 1rem;
+  right: 1rem;
+  background: var(--color-surface);
+  color: var(--color-text);
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.75rem;
+  box-shadow: var(--shadow-md);
 }

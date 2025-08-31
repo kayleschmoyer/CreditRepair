@@ -1,15 +1,37 @@
-.stepper {
+.root {
   display: flex;
   list-style: none;
   padding: 0;
+  margin: 0;
+  background: var(--color-surface);
+  border-radius: 0.75rem;
+  box-shadow: var(--shadow-sm);
 }
-.stepper li {
+
+.step {
   flex: 1;
-  text-align: center;
-  padding: 8px;
-  border-bottom: 2px solid #ccc;
 }
-.stepper li.active {
+
+.btn {
+  width: 100%;
+  padding: 0.5rem;
+  background: none;
+  border: none;
+  border-bottom: 2px solid var(--color-border);
+  color: var(--color-text);
+  cursor: pointer;
+  font: inherit;
+  border-radius: 0.75rem 0.75rem 0 0;
+  transition: border-color 0.2s;
+}
+
+.btn:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(46, 125, 50, 0.3);
+}
+
+.active {
   border-color: var(--color-primary);
   font-weight: bold;
 }
