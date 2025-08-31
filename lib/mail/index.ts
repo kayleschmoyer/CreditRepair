@@ -32,6 +32,12 @@ class SmtpMailer implements Mailer {
   }
 }
 
+class ConsoleMailer implements Mailer {
+  async send(): Promise<void> {
+    console.log('Email send skipped');
+  }
+}
+
 export function createMailer() : Mailer {
   if (process.env.RESEND_API_KEY) {
     return new ResendMailer(process.env.RESEND_API_KEY);
@@ -39,5 +45,5 @@ export function createMailer() : Mailer {
   if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS) {
     return new SmtpMailer(process.env.SMTP_HOST, process.env.SMTP_USER, process.env.SMTP_PASS);
   }
-  return { async send() { console.log('Email', arguments); } } as Mailer;
+  return new ConsoleMailer();
 }

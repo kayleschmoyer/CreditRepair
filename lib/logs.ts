@@ -1,3 +1,5 @@
+import { maskAccountNumbers } from "./ai/guards";
+
 export interface LogEntry {
   requestId: string;
   userId: string | null;
@@ -46,7 +48,9 @@ export function withEdgeLogging(
         durationMs,
         result: "error",
       });
-      console.error(e);
+      console.error(
+        maskAccountNumbers(e instanceof Error ? e.message : String(e)),
+      );
       return new Response(
         JSON.stringify({
           ok: false,

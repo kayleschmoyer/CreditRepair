@@ -26,8 +26,8 @@ class LobMailingProvider implements MailingProvider {
 }
 
 class ConsoleMailingProvider implements MailingProvider {
-  async createLetter(to: Address, from: Address, pdfUrl: string) {
-    console.log('Letter', { to, from, pdfUrl });
+  async createLetter(): Promise<void> {
+    console.log('Letter creation skipped');
   }
 }
 
