@@ -5,14 +5,14 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 1rem;
+  padding: var(--space-4);
 }
 
 .card {
   background: var(--color-surface);
   color: var(--color-text);
-  padding: 1.5rem;
-  border-radius: 0.75rem;
+  padding: var(--space-5);
+  border-radius: var(--space-3);
   box-shadow: var(--shadow-md);
   max-width: 90%;
 }

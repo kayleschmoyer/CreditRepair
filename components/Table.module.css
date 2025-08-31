@@ -3,14 +3,14 @@
   border-collapse: separate;
   border-spacing: 0;
   background: var(--color-surface);
-  border-radius: 0.75rem;
+  border-radius: var(--space-3);
   overflow: hidden;
   box-shadow: var(--shadow-sm);
 }
 
 .root th,
 .root td {
-  padding: 0.5rem;
+  padding: var(--space-2);
   border-bottom: 1px solid var(--color-border);
 }
 
