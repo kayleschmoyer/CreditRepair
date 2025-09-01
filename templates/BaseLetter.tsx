@@ -66,6 +66,9 @@ export const BaseLetter: React.FC<LetterData> = ({ consumer, bureau, items, exhi
       <Text>{consumer.name}</Text>
       <Image style={styles.qr} src={qrDataUrl} />
       <Link src={detailUrl}>{detailUrl}</Link>
+      <Text style={styles.disclaimer}>
+        CreditCraft is not a law firm. Disputes are submitted under FCRA.
+      </Text>
     </Page>
   </Document>
 );

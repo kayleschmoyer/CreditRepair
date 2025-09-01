@@ -3,6 +3,7 @@ import { createServerClient } from '../../../lib/supabase/server';
 import Card from '../../../components/Card';
 import EmptyState from '../../../components/EmptyState';
 import VirtualList from '../../../components/VirtualList';
+import Disclaimer from '../../../components/Disclaimer';
 
 const PAGE_SIZE = 10;
 
@@ -53,6 +54,7 @@ export default async function DisputesPage({ searchParams }: { searchParams: { p
           </Link>
         )}
       </div>
+      <Disclaimer />
     </div>
   );
 }
