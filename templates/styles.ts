@@ -41,4 +41,8 @@ export const styles = StyleSheet.create({
     height: 80,
     marginTop: 10,
   },
+  disclaimer: {
+    marginTop: 20,
+    fontSize: 10,
+  },
 });

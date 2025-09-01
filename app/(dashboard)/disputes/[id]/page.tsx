@@ -4,6 +4,7 @@ import { getSignedUrl } from '../../../../lib/supabase/storage';
 import { logAccess } from '../../../../lib/supabase/access-log';
 import FormWithToast from '../../../../components/FormWithToast';
 import type { AppError } from '../../../../lib/utils/errors';
+import Disclaimer from '../../../../components/Disclaimer';
 
 const bureauAddresses: Record<string, Address> = {
   equifax: {
@@ -130,6 +131,7 @@ export default async function DisputeDetail({ params }: { params: { id: string }
         <button type="submit">Mark as mailed</button>
       </FormWithToast>
       {letterUrl && <a href={letterUrl}>Download Letter</a>}
+      <Disclaimer />
     </div>
   );
 }
