@@ -2,20 +2,20 @@
 
 AI-assisted credit repair & score coaching tool built with Next.js 14 and Supabase.
 
-## 10-minute setup
-1. Create a new Supabase project and enable Email and Google auth providers.
-2. Create storage buckets: `reports` and `letters`.
-3. Copy `.env.local.example` to `.env.local` and fill in values including `SUPABASE_DB_URL`. Optionally set `SENTRY_DSN`, `CRON_ALERT_WEBHOOK`, and `ADMIN_EMAILS` for monitoring features.
-4. Install dependencies: `npm install`.
-5. Prep a fresh demo database with sample data:
-   ```bash
-   npm run db:reseed
-   ```
-6. Start the dev server:
-   ```bash
-   npm run dev
-   ```
-7. Deploy edge functions in `edge-functions` and set a daily cron for `cron-due-reminders`.
+## Quick start
+
+```bash
+git clone <repo-url>
+cd <repo>
+./setup.sh   # or run setup.ps1 on Windows
+```
+
+The script installs Node, Git, Docker, and the Supabase CLI if needed, starts all services, and opens the app at http://localhost:3000 automatically.
+
+### Troubleshooting
+- If it says Docker not running, open Docker Desktop first.
+- Allow any install prompts or password requests so tools can be installed.
+- If the browser doesn't open, visit http://localhost:3000 manually.
 
 ## Features
 - Upload credit reports, parse to tradelines.
