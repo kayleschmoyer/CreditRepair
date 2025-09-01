@@ -10,7 +10,11 @@ const supabase = createClient<Database>(url, key);
 
 async function main() {
   const userId = '00000000-0000-0000-0000-000000000001';
-  await supabase.auth.admin.createUser({ id: userId, email: 'demo@example.com', email_confirm: true } as any);
+  await supabase.auth.admin.createUser({
+    id: userId,
+    email: 'demo@example.com',
+    email_confirm: true,
+  } as unknown as Parameters<typeof supabase.auth.admin.createUser>[0]);
   await supabase.from('profiles').upsert({ id: userId, email: 'demo@example.com', display_name: 'Demo User' });
 
   const reportId = randomUUID();

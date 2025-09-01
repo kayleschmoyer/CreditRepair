@@ -38,7 +38,11 @@ class ConsoleMailer implements Mailer {
   }
 }
 
-export function createMailer() : Mailer {
+/**
+ * Create a mailer instance using available provider credentials. Falls back
+ * to logging emails when no provider is configured.
+ */
+export function createMailer(): Mailer {
   if (process.env.RESEND_API_KEY) {
     return new ResendMailer(process.env.RESEND_API_KEY);
   }

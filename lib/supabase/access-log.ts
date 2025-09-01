@@ -5,7 +5,7 @@ export async function logAccess(
   client: SupabaseClient<Database>,
   userId: string,
   resource: string,
-  details?: Record<string, any>
+  details?: Record<string, unknown>
 ) {
   const {
     data: { user },

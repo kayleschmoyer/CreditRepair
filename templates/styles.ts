@@ -16,7 +16,7 @@ export const styles = StyleSheet.create({
     marginBottom: 20,
   },
   table: {
-    display: 'table' as any,
+    display: 'table' as unknown as 'flex',
     width: 'auto',
     marginVertical: 10,
   },

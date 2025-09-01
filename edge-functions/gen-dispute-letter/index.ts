@@ -3,7 +3,10 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { z } from "https://deno.land/x/zod@v3.22.2/mod.ts";
 import type { AppError } from "../../lib/utils/errors.ts";
 import { withEdgeLogging } from "../../lib/logs.ts";
-
+interface DisputeItem {
+  tradelineId: string;
+  reason: string;
+}
 const schema = z.object({ disputeId: z.string().uuid() });
 
 serve(
@@ -97,7 +100,6 @@ serve(
         action: "read",
         details: { reason: "generate_letter" },
       });
-
       const bureauAddresses: Record<string, {
         name: string;
         address_line1: string;
@@ -141,7 +143,6 @@ serve(
         page.drawText(text, { x, y, size: 12, font });
         y -= dy;
       };
-
       draw(bureau.name, 50);
       draw(bureau.address_line1, 50);
       draw(`${bureau.city}, ${bureau.state} ${bureau.postal_code}`, 50, 40);
@@ -158,14 +159,11 @@ serve(
         30,
       );
       draw("To whom it may concern,", 50, 20);
-
-      for (const item of (dispute.data.items as Array<any>)) {
+      for (const item of dispute.data.items as DisputeItem[]) {
         draw(`Account ${item.tradelineId}: ${item.reason}`, 50);
       }
-
       draw("Sincerely,", 50, 20);
       draw(profile.data.display_name || "", 50);
-
       const pdfBytes = await pdfDoc.save();
       const path = `users/${profile.data.id}/disputes/${disputeId}.pdf`;
       await supabase.storage
