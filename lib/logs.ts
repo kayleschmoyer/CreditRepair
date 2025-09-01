@@ -1,6 +1,8 @@
 import { maskAccountNumbers } from "./ai/guards";
-// @ts-ignore - Deno global is available in edge runtime
-declare const Deno: any;
+
+// Minimal Deno type for edge runtime environments. Only the env getter is used.
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+declare const Deno: { env: { get(name: string): string | undefined } };
 
 export interface LogEntry {
   requestId: string;
@@ -21,6 +23,16 @@ export function getLogsForUser(userId: string): LogEntry[] {
   return logStore.filter((l) => l.userId === userId);
 }
 
+/**
+ * Wraps an edge function handler to capture execution metrics and errors.
+ *
+ * The wrapper records the request ID, execution duration and result, and will
+ * optionally alert a webhook for cron functions on failure.
+ *
+ * @param functionName Name of the edge function being executed.
+ * @param handler      Actual request handler returning a response and optional userId.
+ * @returns            A new handler that logs execution details.
+ */
 export function withEdgeLogging(
   functionName: string,
   handler: (

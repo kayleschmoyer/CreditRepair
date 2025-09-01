@@ -26,15 +26,22 @@ export function maskAccountNumbers(str: string): string {
   });
 }
 
-export function redactPII<T extends Record<string, any>>(data: T): Partial<T> {
+/**
+ * Removes known personally identifiable information (PII) fields from an
+ * object and masks any account numbers found in string values.
+ *
+ * @param data Arbitrary record of values potentially containing PII.
+ * @returns    A shallow copy of {@link data} with PII fields removed and
+ *              account numbers masked.
+ */
+export function redactPII<T extends Record<string, unknown>>(data: T): Partial<T> {
   const clean: Partial<T> = {};
   for (const key of Object.keys(data) as Array<keyof T>) {
     if (!PII_FIELDS.includes(key as string)) {
-      let value: any = data[key];
-      if (typeof value === 'string') {
-        value = maskAccountNumbers(value);
-      }
-      (clean as any)[key] = value;
+      const rawValue = data[key];
+      const value =
+        typeof rawValue === 'string' ? maskAccountNumbers(rawValue) : rawValue;
+      clean[key] = value as T[typeof key];
     }
   }
   return clean;

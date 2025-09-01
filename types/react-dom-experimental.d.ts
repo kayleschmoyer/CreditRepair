@@ -1,3 +1,6 @@
 declare module 'react-dom/experimental' {
-  export function useFormState<T>(action: any, initialState: T): [T, any];
+  export function useFormState<T>(
+    action: (formData: FormData) => Promise<T>,
+    initialState: T
+  ): [T, (formData: FormData) => Promise<T>];
 }
