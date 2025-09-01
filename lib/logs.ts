@@ -1,4 +1,6 @@
 import { maskAccountNumbers } from "./ai/guards";
+// @ts-ignore - Deno global is available in edge runtime
+declare const Deno: any;
 
 export interface LogEntry {
   requestId: string;
@@ -51,6 +53,23 @@ export function withEdgeLogging(
       console.error(
         maskAccountNumbers(e instanceof Error ? e.message : String(e)),
       );
+      if (
+        functionName.startsWith("cron") &&
+        Deno.env.get("CRON_ALERT_WEBHOOK")
+      ) {
+        try {
+          await fetch(Deno.env.get("CRON_ALERT_WEBHOOK")!, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              function: functionName,
+              error: e instanceof Error ? e.message : String(e),
+            }),
+          });
+        } catch (alertErr) {
+          console.error("Failed to send cron alert", alertErr);
+        }
+      }
       return new Response(
         JSON.stringify({
           ok: false,
