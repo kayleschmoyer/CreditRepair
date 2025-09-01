@@ -8,24 +8,35 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
         with:
           node-version: 18
           cache: 'npm'
-      - run: npm ci
-      - uses: supabase/setup-cli@v1
-      - run: supabase start
-      - run: |
-          source supabase/.env
-          echo "NEXT_PUBLIC_SUPABASE_URL=$API_URL" >> $GITHUB_ENV
-          echo "NEXT_PUBLIC_SUPABASE_ANON_KEY=$ANON_KEY" >> $GITHUB_ENV
-          echo "SUPABASE_SERVICE_ROLE_KEY=$SERVICE_ROLE_KEY" >> $GITHUB_ENV
-          echo "SUPABASE_DB_URL=$DB_URL" >> $GITHUB_ENV
-          npm run db:apply
-          npm run db:seed
-      - run: npm run typecheck
-      - run: npm run lint
-      - run: npm test
-      - run: npx playwright install --with-deps
-      - run: npm run test:e2e
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+
+      - name: Start Supabase
+        run: supabase start
+
+      - name: Load Supabase environment variables
+        run: cat supabase/.env >> $GITHUB_ENV
+
+      - name: Run typecheck
+        run: npm run typecheck
+
+      - name: Run lint
+        run: npm run lint
+
+      - name: Run unit tests
+        run: npm test
+
+      - name: Run end-to-end tests
+        run: npm run test:e2e
