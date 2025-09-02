@@ -1,0 +1,88 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+.gauge {
+  position: relative;
+  width: 280px;
+  height: 180px;
+}
+
+.gaugeSvg {
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(0 4px 20px rgba(0, 122, 255, 0.2));
+}
+
+.progressArc {
+  transition: stroke-dasharray 1.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.needle {
+  transition: transform 1.5s cubic-bezier(0.4, 0, 0.2, 1);
+  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.3));
+}
+
+.needleCenter {
+  transition: fill 0.3s ease;
+}
+
+.scoreDisplay {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  text-align: center;
+}
+
+.score {
+  font-size: 3rem;
+  font-weight: var(--font-weight-bold);
+  line-height: 1;
+  transition: color 0.3s ease;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.scoreLabel {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  font-weight: var(--font-weight-medium);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-top: 0.25rem;
+}
+
+.delta {
+  background: var(--gradient-surface);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-sm) var(--space-md);
+}
+
+.deltaValue {
+  font-size: 1.1rem;
+  font-weight: var(--font-weight-semibold);
+}
+
+.positive {
+  color: var(--accent-mint);
+}
+
+.negative {
+  color: #ff453a;
+}
+
+@media (max-width: 768px) {
+  .gauge {
+    width: 240px;
+    height: 150px;
+  }
+  
+  .score {
+    font-size: 2.5rem;
+  }
+}

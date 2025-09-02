@@ -1,3 +1,6 @@
+import * as dotenv from 'dotenv';
+dotenv.config({ path: '.env.local' });
+
 import { createClient } from '@supabase/supabase-js';
 import { Database } from '../types/database.types';
 import { PDFDocument, StandardFonts } from 'pdf-lib';
@@ -107,4 +110,13 @@ async function main() {
   });
 }
 
-main();
+main()
+  .then(() => {
+    console.log("✅ Seeding finished successfully");
+    process.exit(0);
+  })
+  .catch((err) => {
+    console.error("❌ Seeding failed:", err);
+    process.exit(1);
+  });
+

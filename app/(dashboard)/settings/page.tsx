@@ -1,10 +1,9 @@
 import { createServerClient } from "../../../lib/supabase/server";
-import { profileSchema } from "../../../lib/validation";
-import { revalidatePath } from "next/cache";
 import { logAccess } from "../../../lib/supabase/access-log";
 import FormWithToast from "../../../components/FormWithToast";
-import type { AppError } from "../../../lib/utils/errors";
-import { createMailer } from "../../../lib/mail";
+import { updateProfile, deleteMyData } from "./actions";
+import styles from '../../../styles/shared.module.css';
+import Link from 'next/link';
 
 export default async function SettingsPage() {
   const supabase = createServerClient();
@@ -16,148 +15,111 @@ export default async function SettingsPage() {
     await logAccess(supabase, profile.id, "profiles");
   }
 
-  async function updateProfile(
-    formData: FormData,
-  ): Promise<{ error?: AppError }> {
-    "use server";
-    const values = Object.fromEntries(formData.entries());
-    const parsed = profileSchema.safeParse(values);
-    if (!parsed.success) {
-      return {
-        error: { code: "INVALID_INPUT", message: parsed.error.message },
-      };
-    }
-    const { error } = await supabase
-      .from("profiles")
-      .update(parsed.data)
-      .eq("id", profile?.id);
-    if (error) {
-      return { error: { code: "SERVER_ERROR", message: error.message } };
-    }
-    revalidatePath("/settings");
-    return {};
-  }
-
-  async function deleteMyData(): Promise<{ error?: AppError }> {
-    "use server";
-    const run = async (fn: () => Promise<unknown>) => {
-      for (let i = 0; i < 3; i++) {
-        try {
-          await fn();
-          return;
-        } catch (e) {
-          if (i === 2) throw e;
-        }
-      }
-    };
-    try {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) {
-        return { error: { code: "UNAUTHORIZED", message: "Not signed in" } };
-      }
-      const mailer = createMailer();
-      await run(() =>
-        supabase
-          .from("audit_access")
-          .insert({
-            id: crypto.randomUUID(),
-            user_id: user.id,
-            actor: user.id,
-            resource: "all",
-            action: "delete",
-          }),
-      );
-      await run(() =>
-        supabase.storage.from("reports").remove([`users/${user.id}`]),
-      );
-      await run(() =>
-        supabase.storage.from("letters").remove([`users/${user.id}`]),
-      );
-      await run(() =>
-        supabase.from("notifications").delete().eq("user_id", user.id),
-      );
-      await run(() =>
-        supabase.from("dispute_candidates").delete().eq("user_id", user.id),
-      );
-      await run(() =>
-        supabase.from("disputes").delete().eq("user_id", user.id),
-      );
-      await run(() =>
-        supabase.from("credit_reports").delete().eq("user_id", user.id),
-      );
-      await run(() =>
-        supabase.from("audit_access").delete().eq("user_id", user.id),
-      );
-      await run(() =>
-        supabase.from("consents").delete().eq("user_id", user.id),
-      );
-      await run(() => supabase.from("profiles").delete().eq("id", user.id));
-      if (user.email) {
-        await mailer.send({
-          to: user.email,
-          subject: "Your data has been deleted",
-          html: "All of your data has been removed from CreditCraft.",
-        });
-      }
-      return {};
-    } catch (e) {
-      return {
-        error: {
-          code: "SERVER_ERROR",
-          message: e instanceof Error ? e.message : "Failed to delete data",
-        },
-      };
-    }
-  }
-
   return (
-    <div>
-      <h1>Profile</h1>
-      <FormWithToast action={updateProfile}>
-        <label>
-          Name{" "}
-          <input
-            name="display_name"
-            defaultValue={profile?.display_name || ""}
-          />
-        </label>
-        <br />
-        <label>
-          Address{" "}
-          <input
-            name="address_line1"
-            defaultValue={profile?.address_line1 || ""}
-          />
-        </label>
-        <br />
-        <label>
-          City <input name="city" defaultValue={profile?.city || ""} />
-        </label>
-        <br />
-        <label>
-          State <input name="state" defaultValue={profile?.state || ""} />
-        </label>
-        <br />
-        <label>
-          Postal{" "}
-          <input name="postal_code" defaultValue={profile?.postal_code || ""} />
-        </label>
-        <br />
-        <button type="submit">Save</button>
-      </FormWithToast>
-      <p>
-        <a href="/api/export-my-data">Export My Data</a>
-      </p>
-      <p>
-        <a href="/settings/logs">View Logs</a>
-      </p>
-      <FormWithToast action={deleteMyData}>
-        <button type="submit" style={{ marginTop: 20, color: "red" }}>
-          Delete My Data
-        </button>
-      </FormWithToast>
+    <div className={styles.container}>
+      <div className={styles.content}>
+        <div className={styles.hero}>
+          <h1 className={styles.heroTitle}>Settings</h1>
+          <p className={styles.heroSubtitle}>Manage your profile and account preferences</p>
+        </div>
+
+        <div className={styles.section}>
+          <h2 className={styles.sectionTitle}>Profile Information</h2>
+          <FormWithToast action={updateProfile}>
+            <div style={{ display: 'grid', gap: 'var(--space-md)', maxWidth: '500px' }}>
+              <div>
+                <label className={styles.label}>Full Name</label>
+                <input
+                  className={styles.input}
+                  name="display_name"
+                  defaultValue={profile?.display_name || ""}
+                  placeholder="Enter your full name"
+                />
+              </div>
+              
+              <div>
+                <label className={styles.label}>Address</label>
+                <input
+                  className={styles.input}
+                  name="address_line1"
+                  defaultValue={profile?.address_line1 || ""}
+                  placeholder="Street address"
+                />
+              </div>
+              
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 'var(--space-sm)' }}>
+                <div>
+                  <label className={styles.label}>City</label>
+                  <input
+                    className={styles.input}
+                    name="city"
+                    defaultValue={profile?.city || ""}
+                    placeholder="City"
+                  />
+                </div>
+                <div>
+                  <label className={styles.label}>State</label>
+                  <input
+                    className={styles.input}
+                    name="state"
+                    defaultValue={profile?.state || ""}
+                    placeholder="State"
+                  />
+                </div>
+                <div>
+                  <label className={styles.label}>Postal Code</label>
+                  <input
+                    className={styles.input}
+                    name="postal_code"
+                    defaultValue={profile?.postal_code || ""}
+                    placeholder="ZIP"
+                  />
+                </div>
+              </div>
+              
+              <button type="submit" className={styles.button}>
+                Save Changes
+              </button>
+            </div>
+          </FormWithToast>
+        </div>
+
+        <div className={styles.section}>
+          <h2 className={styles.sectionTitle}>Data Management</h2>
+          <div style={{ display: 'flex', gap: 'var(--space-md)', flexWrap: 'wrap' }}>
+            <Link href="/api/export-my-data" className={styles.buttonSecondary}>
+              📥 Export My Data
+            </Link>
+            <Link href="/settings/logs" className={styles.buttonSecondary}>
+              📋 View Activity Logs
+            </Link>
+          </div>
+        </div>
+
+        <div className={styles.section}>
+          <h2 className={styles.sectionTitle}>Danger Zone</h2>
+          <p style={{ color: 'var(--text-secondary)', marginBottom: 'var(--space-md)' }}>
+            This action cannot be undone. All your data will be permanently deleted.
+          </p>
+          <FormWithToast action={deleteMyData}>
+            <button 
+              type="submit" 
+              style={{
+                background: 'var(--accent-orange)',
+                color: 'white',
+                border: 'none',
+                borderRadius: 'var(--radius-md)',
+                padding: 'var(--space-sm) var(--space-lg)',
+                fontWeight: 'var(--font-weight-medium)',
+                cursor: 'pointer',
+                transition: 'all 0.3s ease'
+              }}
+            >
+              🗑️ Delete All My Data
+            </button>
+          </FormWithToast>
+        </div>
+      </div>
     </div>
   );
 }

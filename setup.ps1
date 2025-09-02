@@ -1,11 +1,14 @@
 Param()
 
+Set-StrictMode -Version Latest
+$ErrorActionPreference = "Stop"
+
 Set-Location -Path (Split-Path $MyInvocation.MyCommand.Definition)
 
-function Ensure-Tool {
+function Install-Tool {
   param(
-    [string]$Command,
-    [string]$InstallCommand
+    [Parameter(Mandatory = $true)][string]$Command,
+    [Parameter(Mandatory = $true)][string]$InstallCommand
   )
   if (-not (Get-Command $Command -ErrorAction SilentlyContinue)) {
     Write-Host "Installing $Command..."
@@ -13,44 +16,71 @@ function Ensure-Tool {
   }
 }
 
-Ensure-Tool git "winget install -e --id Git.Git"
-Ensure-Tool node "winget install -e --id OpenJS.NodeJS.LTS"
-Ensure-Tool docker "winget install -e --id Docker.DockerDesktop"
-Ensure-Tool supabase "winget install -e --id Supabase.Supabase"
+# Core tooling (Git/Node/Docker/Supabase CLI)
+Install-Tool git      "winget install -e --id Git.Git"
+Install-Tool node     "winget install -e --id OpenJS.NodeJS.LTS"
+Install-Tool docker   "winget install -e --id Docker.DockerDesktop"
+Install-Tool supabase "winget upgrade -e --id Supabase.Supabase; winget install -e --id Supabase.Supabase"
 
-try {
-  docker info | Out-Null
-} catch {
-  Write-Host "Docker does not appear to be running. Open Docker Desktop and run this script again." -ForegroundColor Yellow
+# Verify Docker is running
+try { docker info | Out-Null } catch {
+  Write-Host "Docker isn't running. Open Docker Desktop and run this script again." -ForegroundColor Yellow
   exit 1
 }
 
+# Start (or confirm) Supabase local stack
 supabase start
 
-supabase storage create-bucket reports | Out-Null
-supabase storage create-bucket letters | Out-Null
+# Create storage buckets (idempotent; ignore errors if they exist)
+try { supabase storage create-bucket reports  | Out-Null } catch {}
+try { supabase storage create-bucket letters  | Out-Null } catch {}
 
+# Read status to capture URLs/keys
 $status = supabase status
 $apiUrl = ($status | Select-String 'API URL').Line -replace 'API URL:\s*', ''
 $dbUrl = ($status | Select-String 'DB URL').Line -replace 'DB URL:\s*', ''
 $anonKey = ($status | Select-String 'anon key').Line -replace 'anon key:\s*', ''
-$serviceKey = ($status | Select-String 'service_role key').Line -replace 'service_role key:\s*', ''
+$svcKey = ($status | Select-String 'service_role key').Line -replace 'service_role key:\s*', ''
 
-@"""
+# Write .env.local for app + functions
+$envContent = @"
 NEXT_PUBLIC_SUPABASE_URL=$apiUrl
 NEXT_PUBLIC_SUPABASE_ANON_KEY=$anonKey
-SUPABASE_SERVICE_ROLE_KEY=$serviceKey
-"""@ | Set-Content -Encoding UTF8 .env.local
+SUPABASE_SERVICE_ROLE_KEY=$svcKey
+"@
+Set-Content -Encoding UTF8 .env.local $envContent
 
+# Make DB URL available to child processes (npm/supabase)
 $env:SUPABASE_DB_URL = $dbUrl
+
+# Install deps
+npm install
+
+# Generate types BEFORE seeding (fixes the ERR_MODULE_NOT_FOUND)
+npm run types:gen
+
+# Apply SQL with the Supabase CLI (no psql needed)
 npm run db:apply
+
+# Seed data
 npm run db:seed
 
-$functions = Start-Process supabase -ArgumentList "functions serve --env-file .env.local" -PassThru
+# Run functions locally (uses .env.local)
+$functions = Start-Process cmd -ArgumentList '/c', 'supabase', 'functions', 'serve', '--env-file', '.env.local' -PassThru
 
-npm install
-$dev = Start-Process npm -ArgumentList "run","dev" -PassThru
+# Start the web app
+$dev = Start-Process npm -ArgumentList "run", "dev" -PassThru
 Start-Sleep -Seconds 5
 Start-Process "http://localhost:3000"
-Wait-Process $dev.Id
-Stop-Process $functions.Id
+
+# Wait only if the process actually started
+if ($dev -and -not $dev.HasExited) {
+  Wait-Process -Id $dev.Id
+}
+
+# Clean up functions process if it's still alive
+if ($functions -and -not $functions.HasExited) {
+  Stop-Process -Id $functions.Id -Force
+}
+
+Read-Host -Prompt "Press Enter to exit"

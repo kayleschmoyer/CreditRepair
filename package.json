@@ -6,10 +6,13 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "db:reset": "psql $SUPABASE_DB_URL -c 'DROP SCHEMA public CASCADE; CREATE SCHEMA public;'",
-    "db:apply": "psql $SUPABASE_DB_URL -f sql/migration.sql",
+
+    "types:gen": "supabase gen types typescript --local > types/database.types.ts",
+    "db:migrate": "supabase db push --local",
+    "db:reset": "supabase db reset --local",
+
     "db:seed": "ts-node sql/seed.ts",
-    "db:reseed": "npm run db:reset && npm run db:apply && npm run db:seed",
+
     "typecheck": "tsc --noEmit",
     "lint": "next lint",
     "test": "vitest",
@@ -22,6 +25,7 @@
     "@supabase/auth-ui-react": "0.2.7",
     "@supabase/auth-ui-shared": "0.1.8",
     "@supabase/supabase-js": "2.39.8",
+    "dotenv": "^17.2.1",
     "jszip": "^3.10.1",
     "lob": "^6.6.3",
     "next": "14.0.0",
@@ -36,6 +40,7 @@
   },
   "devDependencies": {
     "@playwright/test": "1.38.0",
+    "@types/dotenv": "^6.1.1",
     "@types/node": "20.8.10",
     "@types/nodemailer": "7.0.1",
     "@types/qrcode": "1.5.5",
@@ -43,8 +48,8 @@
     "@types/react-dom": "18.2.7",
     "eslint": "^8.47.0",
     "eslint-config-next": "14.0.0",
-    "ts-node": "10.9.1",
-    "typescript": "5.2.2",
+    "ts-node": "^10.9.1",
+    "typescript": "^5.2.2",
     "vitest": "0.34.6"
   }
 }

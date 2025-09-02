@@ -1,6 +1,5 @@
 'use client';
-import { useEffect } from 'react';
-import { useFormState } from 'react-dom/experimental';
+import { useEffect, useTransition } from 'react';
 import { AppError, toToast } from '../lib/utils/errors';
 import { ReactNode } from 'react';
 import { useToast } from './ToastProvider';
@@ -17,23 +16,32 @@ interface Props {
 }
 
 export default function FormWithToast({ action, children, confirmMessage }: Props) {
-  const [state, formAction] = useFormState(action, { error: null });
+  const [isPending, startTransition] = useTransition();
   const toast = useToast();
   const confirm = useConfirm();
 
-  useEffect(() => {
-    if (state.error) {
-      toast(toToast(state.error));
-    }
-  }, [state.error, toast]);
-
-  async function handleAction(formData: FormData) {
+  async function handleSubmit(formData: FormData) {
     if (confirmMessage) {
       const ok = await confirm(confirmMessage);
       if (!ok) return;
     }
-    return formAction(formData);
+
+    startTransition(async () => {
+      try {
+        const result = await action(formData);
+        if (result?.error) {
+          toast(toToast(result.error));
+        }
+      } catch (error) {
+        console.error('Form submission error:', error);
+        toast('An unexpected error occurred');
+      }
+    });
   }
 
-  return <form action={handleAction}>{children}</form>;
+  return (
+    <form action={handleSubmit}>
+      {children}
+    </form>
+  );
 }

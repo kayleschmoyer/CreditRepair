@@ -1,6 +1,5 @@
 {
   "compilerOptions": {
-    "target": "es2017",
     "lib": [
       "dom",
       "dom.iterable",
@@ -12,7 +11,9 @@
     "forceConsistentCasingInFileNames": true,
     "noEmit": true,
     "esModuleInterop": true,
-    "module": "esnext",
+    "target": "ES2020",
+    "allowImportingTsExtensions": true,
+    "module": "commonjs",
     "moduleResolution": "node",
     "resolveJsonModule": true,
     "isolatedModules": true,
